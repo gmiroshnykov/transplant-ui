@@ -1,5 +1,6 @@
 var gulp = require('gulp'),
     gutil = require('gulp-util'),
+    connect = require('gulp-connect'),
     source = require('vinyl-source-stream'),
     browserify = require('browserify'),
     watchify = require('watchify'),
@@ -34,7 +35,8 @@ function scripts(watch) {
     return bundler.bundle()
       .on('error', handleErrors)
       .pipe(source('bundle.js'))
-      .pipe(gulp.dest(paths.build));
+      .pipe(gulp.dest(paths.build))
+      .pipe(connect.reload());
   }
 
   bundler.on('update', function() {
@@ -52,6 +54,7 @@ function scripts(watch) {
 gulp.task('statics', function() {
   return gulp.src(paths.statics)
     .pipe(gulp.dest(paths.build))
+    .pipe(connect.reload());
 });
 
 gulp.task('scripts', function() {
@@ -64,4 +67,12 @@ gulp.task('watch', ['statics'], function() {
   return scripts(true);
 });
 
-gulp.task('default', ['watch']);
+gulp.task('connect', ['watch'], function() {
+  connect.server({
+    root: paths.build,
+    port: 8000,
+    livereload: true
+  });
+});
+
+gulp.task('default', ['connect']);
